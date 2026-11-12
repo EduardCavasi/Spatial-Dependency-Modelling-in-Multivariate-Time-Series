@@ -7,7 +7,12 @@ from scipy.sparse.csgraph import shortest_path
 from torch.utils.data import Dataset
 
 class MetrDataset(Dataset):
-    def __init__(self, data_dir, split: Literal["all", "train", "val", "test"] = "all", null_val=0.0):
+    def __init__(
+        self,
+        data_dir: str,
+        split: Literal["all", "train", "val", "test"] = "all",
+        null_val=0.0
+    ):
         self.data_dir = data_dir
         self.null_val = null_val
         self.split = split
