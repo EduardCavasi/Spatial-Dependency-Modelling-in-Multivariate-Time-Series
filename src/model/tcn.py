@@ -6,6 +6,8 @@ from torch.nn import functional as F
 
 from basicts.configs import BasicTSModelConfig
 
+from src.model.features import calendar_features
+
 
 @dataclass
 class TCNConfig(BasicTSModelConfig):
@@ -14,6 +16,8 @@ class TCNConfig(BasicTSModelConfig):
     channels: int = 32           # 32 filters for each convolution
     kernel_size: int = 2
     num_layers: int = 4          # dilations 1, 2, 4, 8 -> sees 16 steps back (>= 12)
+    use_tod: bool = False        # add time of day (sine, cosine) as extra input channels
+    use_dow: bool = False        # add day of week (sine, cosine) as extra input channels
 
 
 class CausalBlock(nn.Module):
@@ -30,21 +34,28 @@ class CausalBlock(nn.Module):
 
 
 class TCN(nn.Module):
-    """Stack of causal dilated convolutions over one sensor's 12 values.
+    """Stack of causal dilated convolutions over one sensor's past values (+ optional calendar).
     One network shared by all sensors: no spatial information."""
     def __init__(self, config: TCNConfig):
         super().__init__()
+        self.use_tod, self.use_dow = config.use_tod, config.use_dow
+        c_in = 1 + 2 * config.use_tod + 2 * config.use_dow  # speed + 2 per calendar feature
         c = config.channels
         self.blocks = nn.Sequential(*[
-            CausalBlock(1 if i == 0 else c, c, config.kernel_size, 2 ** i)
-            for i in range(config.num_layers)])   
-        # chain of 4 blocks, for i = 0, 1, 2, 3: dilation 2 ** i = 1, 2, 4, 8 
-        # The first block takes 1 channel (speed); the others take 32
+            CausalBlock(c_in if i == 0 else c, c, config.kernel_size, 2 ** i)
+            for i in range(config.num_layers)])
+        # chain of blocks, for i = 0, 1, 2, ...: dilation 2 ** i = 1, 2, 4, 8, ...
+        # The first block takes c_in channels (speed + calendar); the others take 32
         self.head = nn.Linear(c, config.output_len)
 
-    def forward(self, inputs):
+    def forward(self, inputs, inputs_timestamps):
         B, L, N = inputs.shape                             # [batch, 12, 207]
         x = inputs.permute(0, 2, 1).reshape(B * N, 1, L)   # each sensor = its own series
-        h = self.blocks(x)                                 # [B*N, channels, 12]
+        cal = calendar_features(inputs_timestamps, self.use_tod, self.use_dow)    # [B, L, n] or None
+        if cal is not None:
+            n = cal.shape[-1]
+            cal = cal.permute(0, 2, 1).unsqueeze(1).expand(B, N, n, L).reshape(B * N, n, L)  # same clock for every sensor
+            x = torch.cat([x, cal], dim=1)                 # [B*N, 1 + n, L]
+        h = self.blocks(x)                                 # [B*N, channels, L]
         y = self.head(h[:, :, -1])                         # features at the last step -> [B*N, 12]
         return y.reshape(B, N, -1).permute(0, 2, 1)        # back to [batch, 12, 207]
