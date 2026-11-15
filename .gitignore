@@ -7,3 +7,8 @@ data/PEMS07
 data/PEMS08
 
 __pycache__
+.venv/
+checkpoints/
+.ipynb_checkpoints/
+
+
