@@ -1,6 +1,7 @@
 import torch
 from src.data.window_dataset import WindowDataset
 from src.data.dataset import MetrDataset
+from src.data.transforms.z_score import ZScoreNormalize
 from typing import Literal, Optional, Callable
 
 class SensorWiseDataset(WindowDataset):
@@ -14,7 +15,8 @@ class SensorWiseDataset(WindowDataset):
         include_tod: bool = False,
         include_dow: bool = False,
         input_transforms: Optional[Callable] = None,
-        ts_transforms: Optional[Callable] = None
+        ts_transforms: Optional[Callable] = None,
+        normalizer: Optional[ZScoreNormalize] = None
     ):
         dataset = MetrDataset(
             data_dir=data_dir,
@@ -29,7 +31,8 @@ class SensorWiseDataset(WindowDataset):
             out_size=out_size,
             stride=stride,
             input_transforms=input_transforms,
-            ts_transforms=ts_transforms
+            ts_transforms=ts_transforms,
+            normalizer=normalizer
         )
 
     def __len__(self):
@@ -55,3 +58,4 @@ class SensorWiseDataset(WindowDataset):
             torch.stack(data_input, dim=0),
             torch.stack(data_output, dim=0)
         )
+    

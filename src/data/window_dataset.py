@@ -2,6 +2,7 @@ import torch
 from torch.utils.data import Dataset
 from typing import Optional, Callable
 from src.data.dataset import MetrDataset
+from src.data.transforms.z_score import ZScoreNormalize
 
 class WindowDataset(Dataset):
     def __init__(
@@ -11,7 +12,8 @@ class WindowDataset(Dataset):
         out_size: int = 12,
         stride: int = 1,
         input_transforms: Optional[Callable] = None,
-        ts_transforms: Optional[Callable] = None
+        ts_transforms: Optional[Callable] = None,
+        normalizer: Optional[ZScoreNormalize] = None
     ):
         self.dataset = dataset
         self.in_size = in_size
@@ -19,6 +21,9 @@ class WindowDataset(Dataset):
         self.stride = stride
         self.input_transforms = input_transforms
         self.ts_transforms = ts_transforms
+        self.normalizer = normalizer
+        if normalizer is not None and not normalizer.fitted:
+            normalizer.fit(dataset.get_data(), dataset.get_valid_mask())
 
     def __len__(self):
         return (len(self.dataset) - self.in_size - self.out_size) // self.stride + 1
@@ -30,6 +35,8 @@ class WindowDataset(Dataset):
         ts_output, data_output = self.dataset[end_input_idx:end_output_idx]
         if self.ts_transforms is not None:
             ts_input, ts_output = self.ts_transforms(ts_input), self.ts_transforms(ts_output)
+        if self.normalizer is not None:
+            data_input = self.normalizer(data_input)
         if self.input_transforms is not None:
             data_input = self.input_transforms(data_input)
         if sensor is not None:
