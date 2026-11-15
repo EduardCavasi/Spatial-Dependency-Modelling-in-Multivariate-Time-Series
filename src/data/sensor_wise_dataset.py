@@ -56,6 +56,7 @@ class SensorWiseDataset(WindowDataset):
         # channels = 1,2,3 depending on including dow and tod
         return (
             torch.stack(data_input, dim=0),
-            torch.stack(data_output, dim=0)
+            torch.stack(data_output, dim=0),
+            example_idx
         )
     
