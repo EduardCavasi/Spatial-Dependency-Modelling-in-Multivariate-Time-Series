@@ -32,11 +32,23 @@ dataset_params = {
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--model", choices=sorted(MODELS) + ["LGBM"], default="MLP")
-
+parser.add_argument("--tod", action="store_true")
+parser.add_argument("--dow", action="store_true")
+parser.add_argument("--input", type=int, default=12)
 args = parser.parse_args()
 
 if args.model == "LGBM":
-    LGBM(LGBMConfig()).run()
+    LGBM(LGBMConfig(
+        input_len=args.input,
+        use_tod=args.tod,
+        use_dow=args.dow
+    )).run()
 else:
-    cfg = make_cfg(**MODELS[args.model], num_epochs = 10)
+    cfg = make_cfg(
+        model = MODELS[args.model]["model"],
+        model_config = MODELS[args.model]["model_config"](use_tod=args.tod, use_dow=args.dow, input_len = args.input),
+        num_epochs = 10,
+        use_timestamps = args.tod or args.dow,
+        input_len = args.input
+    )
     BasicTSLauncher.launch_training(cfg)
