@@ -7,3 +7,5 @@ data/PEMS07
 data/PEMS08
 
 __pycache__
+checkpoints
+steps/basicts.md
