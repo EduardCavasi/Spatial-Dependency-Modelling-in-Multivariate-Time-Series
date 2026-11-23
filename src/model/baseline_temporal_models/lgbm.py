@@ -23,7 +23,12 @@ class LGBMConfig:
     patience: int = 30
     horizons: tuple = (3, 6, 12)
     max_bin: int = 63
-
+    feature_fraction: float = 1.0
+    bagging_fraction: float = 1.0
+    bagging_freq: int = 0
+    lambda_l1: float = 0.0
+    lambda_l2: float = 0.0
+    min_gain_to_split: float = 0.0
 
 class LGBM:
     """One LightGBM per horizon, shared across sensors (each sensor window is an example).
@@ -69,8 +74,11 @@ class LGBM:
             model = lgb.LGBMRegressor(
                 objective="l1", n_estimators=c.n_estimators, learning_rate=c.learning_rate,
                 num_leaves=c.num_leaves, max_depth=c.max_depth, min_child_samples=c.min_child_samples,
-                n_jobs=-1, force_col_wise=True, max_bin=c.max_bin, device_type="cpu"
-            )
+                n_jobs=-1, force_col_wise=True, max_bin=c.max_bin, device_type="cpu",
+                reg_alpha=c.lambda_l1, reg_lambda=c.lambda_l2, min_split_gain=c.min_gain_to_split,
+                bagging_fraction=c.bagging_fraction, bagging_freq=c.bagging_freq, feature_fraction=c.feature_fraction,
+                random_state=42
+            )   
             model.fit(
                 X[m], Y[m, horizon],
                 eval_X=X_val[m_val], eval_y=Y_val[m_val, horizon],
@@ -94,13 +102,14 @@ class LGBM:
         results["all"] = {name: ALL_METRICS[name](pred, target[:, [h - 1 for h in self.config.horizons]], mask[:, [h - 1 for h in self.config.horizons]]).item() for name in ("MAE", "RMSE", "MAPE")}
         return results
 
-    def run(self, path="data/METR-LA"):
+    def run(self, path="data/METR-LA", folder_name: str = None):
         self.fit(*self.windows(path, "train"), *self.windows(path, "val"))
         results = self.evaluate(*self.windows(path, "test"))
         for k, v in results.items():
             print(k, v)
 
-        folder_name = "checkpoints/LGBM/" + f"input_{self.config.input_len}" + ("_tod" if self.config.use_tod else "") + ("_dow" if self.config.use_dow else "")
+        if folder_name is None:
+            folder_name = "checkpoints/LGBM/" + f"input_{self.config.input_len}" + ("_tod" if self.config.use_tod else "") + ("_dow" if self.config.use_dow else "")
         os.makedirs(f"{folder_name}")
         joblib.dump(self.models, f"{folder_name}/models.pkl")
         with open(f"{folder_name}/results.json", "w") as f:
