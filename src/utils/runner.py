@@ -5,6 +5,10 @@ from src.model.baseline_temporal_models.mlp import MLP, MLPConfig
 from src.model.baseline_temporal_models.gru import GRU, GRUConfig
 from src.model.baseline_temporal_models.lgbm import LGBM, LGBMConfig
 from src.model.baseline_temporal_models.encoder_decoder_gru import EncoderDecoderGRU, EncoderDecoderGRUConfig
+from src.model.baseline_temporal_models.linear import Linear, LinearConfig
+from src.model.baseline_temporal_models.lstm import LSTM, LSTMConfig
+from src.model.baseline_temporal_models.tcn import TCN, TCNConfig
+from src.model.baseline_temporal_models.encoder_decoder_lstm import EncoderDecoderLSTM, EncoderDecoderLSTMConfig
 
 from src.utils.config import make_cfg
 import argparse
@@ -21,6 +25,22 @@ MODELS = {
     "EncoderDecoderGRU": {
         "model": EncoderDecoderGRU,
         "model_config": EncoderDecoderGRUConfig
+    },
+    "Linear": {
+        "model": Linear,
+        "model_config": LinearConfig
+    },
+    "LSTM": {
+        "model": LSTM,
+        "model_config": LSTMConfig
+    },
+    "TCN": {
+        "model": TCN,
+        "model_config": TCNConfig
+    },
+    "EncoderDecoderLSTM": {
+        "model": EncoderDecoderLSTM,
+        "model_config": EncoderDecoderLSTMConfig
     }
 }
 
@@ -41,6 +61,7 @@ parser.add_argument("--model", choices=sorted(MODELS) + ["LGBM"], default="MLP")
 parser.add_argument("--tod", action="store_true")
 parser.add_argument("--dow", action="store_true")
 parser.add_argument("--input", type=int, default=12)
+parser.add_argument("--epochs", type=int, default=10, help="maximum epochs (early stopping may end sooner)")
 args = parser.parse_args()
 
 if args.model == "LGBM":
@@ -53,7 +74,7 @@ else:
     cfg = make_cfg(
         model = MODELS[args.model]["model"],
         model_config = MODELS[args.model]["model_config"](use_tod=args.tod, use_dow=args.dow, input_len = args.input),
-        num_epochs = 10,
+        num_epochs = args.epochs,
         use_timestamps = args.tod or args.dow,
         input_len = args.input
     )
