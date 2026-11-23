@@ -54,7 +54,7 @@ class GRU(nn.Module):
         x = torch.stack(stack, dim = -1) # x = (batch_size * S, input_len, 1, self.nr_features)
         x = x.reshape(B * S, L, -1)
 
-        out, h = self.gru(x)
+        out, _ = self.gru(x)
         y = self.fc(out[:, -1])
 
         return y.reshape(B, S, -1).permute(0, 2, 1) # y = (batch_size, output_len, 207)
