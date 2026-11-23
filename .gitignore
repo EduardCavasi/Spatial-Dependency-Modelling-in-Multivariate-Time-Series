@@ -9,3 +9,4 @@ data/PEMS08
 __pycache__
 checkpoints
 steps/basicts.md
+.venv/
