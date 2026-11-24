@@ -1,6 +1,6 @@
 import json
 import os
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 import numpy as np
 import torch
 import lightgbm as lgb
@@ -8,12 +8,17 @@ from torch import nn
 import joblib
 
 from basicts.configs import BasicTSModelConfig
+from basicts.scaler import BasicTSScaler
+
+from src.utils.scaler.z_score_scaler import MyZScoreScaler
 
 def load_nn_checkpoint(
     path: str, # path to the run folder containing the best model weights
     model_cls: type[nn.Module],
     model_config: BasicTSModelConfig,
-) -> nn.Module:
+    scaler_cls: type[BasicTSScaler],
+    scaler_config: Dict
+) -> Tuple[nn.Module, BasicTSScaler]:
     filePath = None
     for root, _, files in os.walk(path):
         for file in files:
@@ -31,7 +36,12 @@ def load_nn_checkpoint(
     model = model_cls(model_config)
     model.load_state_dict(ckpt["model_state_dict"])
     model.eval()
-    return model
+
+    scaler = scaler_cls(
+        **scaler_config,
+        stats = ckpt["scaler_stats"]
+    )
+    return model, scaler
 
 def load_lgbm_checkpoint(
     path: str, # path to the run folder containing the best model weights
