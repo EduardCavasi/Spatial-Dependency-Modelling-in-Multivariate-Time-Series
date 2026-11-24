@@ -70,6 +70,7 @@ def run(args: argparse.Namespace, random: bool = False, save_results: bool = Tru
             num_epochs = 10,
             use_timestamps = args.tod or args.dow,
             input_len = args.input,
+            norm_each_channel = args.norm_each_channel,
             save_results = save_results,
             seed=42 if not random else rand.randint(1, 100)
         )
@@ -91,6 +92,7 @@ parser.add_argument("--tod", action="store_true")
 parser.add_argument("--dow", action="store_true")
 parser.add_argument("--input", type=int, default=12)
 parser.add_argument("--runtimes", type=int, default=1)
+parser.add_argument("--norm-each-channel", action="store_true")
 args = parser.parse_args()
 
 if args.runtimes == 1:
