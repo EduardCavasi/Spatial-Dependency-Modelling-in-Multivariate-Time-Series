@@ -83,7 +83,8 @@ Models: `Linear`, `LSTM`, `TCN`, `EncoderDecoderLSTM`, `MLP`, `GRU`, `EncoderDec
 Results go to `checkpoints/<model>/...`: `test_metrics.json`, training log, best checkpoint.
 
 **Tune the neural models** (`src/utils/tuning/nn_tuning.py`): 10 tries per model, 10 epochs each,
-inputs speed + time of day + day of week, chosen on validation MAE (the test set is not used).
+inputs speed + time of day + day of week, batch size 64 for all models,
+chosen on validation MAE (the test set is not used).
 The first try is the current default settings. Tries run 3 at a time; an interrupted run continues where it stopped.
 
 ```bash

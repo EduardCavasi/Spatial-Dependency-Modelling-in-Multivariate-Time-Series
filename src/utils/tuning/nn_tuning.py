@@ -42,12 +42,11 @@ COUNTED = (TrialState.COMPLETE, TrialState.PRUNED, TrialState.RUNNING)   # tries
 
 
 # ---------------------------------------------------------------- search spaces ----------------------------------
-# Learning rate: the same range for every model. Batch size is fixed at 64 except for Linear,
-# which has no size settings to tune (and is cheap to train).
+# Learning rate: the same range for every model. Batch size: fixed at 64 for every model (make_cfg),
+# because 10-epoch tries are biased on it (a bigger batch makes fewer updates in the same 10 epochs).
 
 def space_linear(t):
-    t.suggest_float('lr', 3e-4, 3e-3, log=True)
-    t.suggest_categorical('batch_size', [32, 64, 128])
+    t.suggest_float('lr', 3e-4, 3e-3, log=True)      # tuned; Linear has no size settings to tune besides it
 
 
 def space_lstm(t):
@@ -70,7 +69,7 @@ def space_encoder_decoder_lstm(t):
 
 
 MODELS = {   # name: (model, config, search space, current default settings = first try)
-    'Linear': (Linear, LinearConfig, space_linear, dict(lr=1e-3, batch_size=64)),
+    'Linear': (Linear, LinearConfig, space_linear, dict(lr=1e-3)),
     'LSTM': (LSTM, LSTMConfig, space_lstm, dict(hidden_size=64, num_layers=1, lr=1e-3)),
     'TCN': (TCN, TCNConfig, space_tcn, dict(channels=32, kernel_size=2, num_layers=4, lr=1e-3)),
     'EncoderDecoderLSTM': (EncoderDecoderLSTM, EncoderDecoderLSTMConfig, space_encoder_decoder_lstm,
