@@ -29,14 +29,14 @@ def make_cfg(model, model_config, **overrides):
         model_config=model_config,
         metrics=["MAE", "RMSE", "MAPE"],
         taskflow=DCRNNTaskFlow(),
-        callbacks=[EarlyStopping(patience=5)],
-        gpus="0",
+        callbacks=[EarlyStopping(patience=10)],
+        gpus="0,1",
         num_epochs=100,
         batch_size=64,
         lr=1e-3,
         lr_scheduler = MultiStepLR,
         lr_scheduler_params={
-            "milestones": [50, 70, 90],
+            "milestones": [30, 40, 50, 60, 70, 80, 90],
             "gamma": 0.1
         },
         test_interval=1000,

@@ -64,10 +64,17 @@ def run(args: argparse.Namespace, random: bool = False, save_results: bool = Tru
             random=random
         )).run()
     else:
+        params = {
+            "use_tod": args.tod,
+            "use_dow": args.dow,
+            "input_len": args.input
+        }
+        if args.all_sensors and args.model == "EncoderDecoderGRU":
+            params["input_size"] = 207
         cfg = make_cfg(
             model = MODELS[args.model]["model"],
-            model_config = MODELS[args.model]["model_config"](use_tod=args.tod, use_dow=args.dow, input_len = args.input),
-            num_epochs = 10,
+            model_config = MODELS[args.model]["model_config"](**params),
+            num_epochs = 100,
             use_timestamps = args.tod or args.dow,
             input_len = args.input,
             norm_each_channel = args.norm_each_channel,
@@ -86,30 +93,32 @@ def run(args: argparse.Namespace, random: bool = False, save_results: bool = Tru
             shutil.rmtree(run_dir)
         return metrics
 
-parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument("--model", choices=sorted(MODELS) + ["LGBM"], default="MLP")
-parser.add_argument("--tod", action="store_true")
-parser.add_argument("--dow", action="store_true")
-parser.add_argument("--input", type=int, default=12)
-parser.add_argument("--runtimes", type=int, default=1)
-parser.add_argument("--norm-each-channel", action="store_true")
-args = parser.parse_args()
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--model", choices=sorted(MODELS) + ["LGBM"], default="MLP")
+    parser.add_argument("--tod", action="store_true")
+    parser.add_argument("--dow", action="store_true")
+    parser.add_argument("--all-sensors", action="store_true")
+    parser.add_argument("--input", type=int, default=12)
+    parser.add_argument("--runtimes", type=int, default=1)
+    parser.add_argument("--norm-each-channel", action="store_true")
+    args = parser.parse_args()
 
-if args.runtimes == 1:
-    run(args)
-else:
-    h3 = []
-    h6 = []
-    h12 = []
-    all = []
-    for _ in range(args.runtimes):
-        metrics = run(args, random=True, save_results = False)
-        h3.append(pick_metric(metrics, "h3")["MAE"])
-        h6.append(pick_metric(metrics, "h6")["MAE"])
-        h12.append(pick_metric(metrics, "h12")["MAE"])
-        all.append(pick_metric(metrics, "all")["MAE"])
+    if args.runtimes == 1:
+        run(args)
+    else:
+        h3 = []
+        h6 = []
+        h12 = []
+        all = []
+        for _ in range(args.runtimes):
+            metrics = run(args, random=True, save_results = False)
+            h3.append(pick_metric(metrics, "h3")["MAE"])
+            h6.append(pick_metric(metrics, "h6")["MAE"])
+            h12.append(pick_metric(metrics, "h12")["MAE"])
+            all.append(pick_metric(metrics, "all")["MAE"])
 
-    print(f"H3 -> mean: {np.mean(h3)}, std: {np.std(h3)}")
-    print(f"H6 -> mean: {np.mean(h6)}, std: {np.std(h6)}")
-    print(f"H12 -> mean: {np.mean(h12)}, std: {np.std(h12)}")
-    print(f"ALL -> mean: {np.mean(all)}, std: {np.std(all)}")
+        print(f"H3 -> mean: {np.mean(h3)}, std: {np.std(h3)}")
+        print(f"H6 -> mean: {np.mean(h6)}, std: {np.std(h6)}")
+        print(f"H12 -> mean: {np.mean(h12)}, std: {np.std(h12)}")
+        print(f"ALL -> mean: {np.mean(all)}, std: {np.std(all)}")
