@@ -10,3 +10,5 @@ __pycache__
 checkpoints
 steps/basicts.md
 .venv/
+
+run_overnight.ps1

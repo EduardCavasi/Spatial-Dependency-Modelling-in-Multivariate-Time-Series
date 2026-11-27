@@ -20,13 +20,14 @@ class LSTMConfig(BasicTSModelConfig):
 
 
 class LSTM(nn.Module):
-    """Reads one sensor's 12 values step by step, then predicts its next 12 values at once.
-    One LSTM shared by all sensors: no spatial information."""
+    """Reads one sensor's 12 values step by step, then predicts its next 12 values at once."""
     def __init__(self, config: LSTMConfig):
         super().__init__()
         self.use_tod, self.use_dow = config.use_tod, config.use_dow
         n_in = 1 + 2 * config.use_tod + 2 * config.use_dow      # speed (+ calendar) at each step
-        self.lstm = nn.LSTM(input_size=n_in, hidden_size=config.hidden_size, num_layers=config.num_layers,
+        self.lstm = nn.LSTM(input_size=n_in, 
+                            hidden_size=config.hidden_size, 
+                            num_layers=config.num_layers,
                             dropout=config.dropout if config.num_layers > 1 else 0.0, batch_first=True)
         # memory after the last step -> 12 future values, same weights for all sensors
         self.head = nn.Linear(config.hidden_size, config.output_len)

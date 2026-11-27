@@ -82,17 +82,23 @@ python -m src.utils.runner --model LGBM --tod
 Models: `Linear`, `LSTM`, `TCN`, `EncoderDecoderLSTM`, `MLP`, `GRU`, `EncoderDecoderGRU`, `LGBM`.
 Results go to `checkpoints/<model>/...`: `test_metrics.json`, training log, best checkpoint.
 
-**Tune the neural models** (`src/utils/tuning/nn_tuning.py`): 10 tries per model, 10 epochs each,
-inputs speed + time of day + day of week, batch size 64 for all models,
+**Tune the neural models** (`src/utils/tuning/nn_tuning.py`): 20 tries per model (two rounds of 10), 10 epochs each,
+inputs speed + time of day + day of week, batch size 64 and learning rate 0.0003–0.01 for all models,
 chosen on validation MAE (the test set is not used).
 The first try is the current default settings. Tries run 3 at a time; an interrupted run continues where it stopped.
 
 ```bash
-python -m src.utils.tuning.nn_tuning tune --models Linear TCN LSTM   # the search
-python -m src.utils.tuning.nn_tuning summary                         # table of all tries (+ CSV)
-python -m src.utils.tuning.nn_tuning final --models TCN LSTM         # full training with the best settings + test
-python -m src.utils.tuning.nn_tuning final --models TCN --seed 1     # the same with another seed
+python -m src.utils.tuning.nn_tuning tune --models Linear TCN LSTM          # the search
+python -m src.utils.tuning.nn_tuning summary                                # table of all tries (+ CSV)
+python -m src.utils.tuning.nn_tuning final --models TCN LSTM                # full training with the best settings + test
+python -m src.utils.tuning.nn_tuning final --models TCN --seeds 42 1 2      # the same with 3 seeds
 ```
+
+**Everything overnight** (Windows PowerShell): `.\run_overnight.ps1` runs the tuning, then the final runs of all
+models with 3 seeds; started again after an interruption, it skips what is already done.
+
+**On a Kaggle GPU:** `kaggle/kaggle_run.ipynb` runs the same steps (plus the encoder-decoder LSTM and its
+DCRNN-sized version) and returns the results as `results.zip`; instructions are in its first cell.
 
 Tuning output: `checkpoints/tuning/` (`optuna.db`, `<model>_trials.csv`, worker logs);
 final runs: `checkpoints/final/<model>/<tuned|defaults>_seed<seed>/`.

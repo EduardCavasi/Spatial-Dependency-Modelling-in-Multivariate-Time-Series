@@ -1,9 +1,5 @@
-"""Encoder-decoder (sequence to sequence) LSTM, as the FC-LSTM baseline of the DCRNN paper.
-
-Copy of encoder_decoder_gru.py with LSTM cells instead of GRU cells. Everything else is identical
-(inputs, calendar features, teacher forcing / autoregressive decoding), so comparing the two models
-compares only the recurrent cell. If one of the two files changes, change the other one the same way.
-
+"""
+Copy of encoder_decoder_gru.py with LSTM cells instead of GRU cells.
 Size of FC-LSTM in the DCRNN paper: hidden_size=256, num_layers=2.
 """
 import torch

@@ -34,8 +34,7 @@ class CausalBlock(nn.Module):
 
 
 class TCN(nn.Module):
-    """Stack of causal dilated convolutions over one sensor's past values (+ optional calendar).
-    One network shared by all sensors: no spatial information."""
+    """Stack of causal dilated convolutions over one sensor's past values (+ optional calendar)."""
     def __init__(self, config: TCNConfig):
         super().__init__()
         receptive_field = 1 + (config.kernel_size - 1) * (2 ** config.num_layers - 1)
