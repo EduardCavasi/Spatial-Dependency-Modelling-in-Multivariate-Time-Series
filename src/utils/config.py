@@ -5,6 +5,7 @@ from src.utils.taskflow.dcrnn_taskflow import DCRNNTaskFlow
 from basicts.utils.constants import BasicTSMode
 
 from src.utils.scaler.z_score_scaler import MyZScoreScaler
+import torch
 from torch.optim.lr_scheduler import MultiStepLR
 
 def make_cfg(model, model_config, **overrides):

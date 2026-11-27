@@ -19,7 +19,7 @@ class MyZScoreScaler(ZScoreScaler):
         if self.stats:
             return
 
-        # fit from trainining dataset
+        # fit from training dataset
         if isinstance(data, np.ndarray):
             if self.norm_each_channel:
                 mean = np.mean(data, axis=-2, keepdims=True)

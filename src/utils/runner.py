@@ -3,6 +3,11 @@ from src.model.baseline_temporal_models.mlp import MLP, MLPConfig
 from src.model.baseline_temporal_models.gru import GRU, GRUConfig
 from src.model.baseline_temporal_models.lgbm import LGBM, LGBMConfig
 from src.model.baseline_temporal_models.encoder_decoder_gru import EncoderDecoderGRU, EncoderDecoderGRUConfig
+from src.model.baseline_temporal_models.linear import Linear, LinearConfig
+from src.model.baseline_temporal_models.lstm import LSTM, LSTMConfig
+from src.model.baseline_temporal_models.tcn import TCN, TCNConfig
+from src.model.baseline_temporal_models.encoder_decoder_lstm import EncoderDecoderLSTM, EncoderDecoderLSTMConfig
+
 from src.utils.config import make_cfg
 
 import argparse
@@ -27,6 +32,22 @@ MODELS = {
     "EncoderDecoderGRU": {
         "model": EncoderDecoderGRU,
         "model_config": EncoderDecoderGRUConfig
+    },
+    "Linear": {
+        "model": Linear,
+        "model_config": LinearConfig
+    },
+    "LSTM": {
+        "model": LSTM,
+        "model_config": LSTMConfig
+    },
+    "TCN": {
+        "model": TCN,
+        "model_config": TCNConfig
+    },
+    "EncoderDecoderLSTM": {
+        "model": EncoderDecoderLSTM,
+        "model_config": EncoderDecoderLSTMConfig
     }
 }
 
@@ -74,7 +95,7 @@ def run(args: argparse.Namespace, random: bool = False, save_results: bool = Tru
         cfg = make_cfg(
             model = MODELS[args.model]["model"],
             model_config = MODELS[args.model]["model_config"](**params),
-            num_epochs = 100,
+            num_epochs = args.epochs,
             use_timestamps = args.tod or args.dow,
             input_len = args.input,
             norm_each_channel = args.norm_each_channel,
@@ -101,6 +122,7 @@ if __name__ == "__main__":
     parser.add_argument("--all-sensors", action="store_true")
     parser.add_argument("--input", type=int, default=12)
     parser.add_argument("--runtimes", type=int, default=1)
+    parser.add_argument("--epochs", type=int, default=100, help="maximum epochs (early stopping may end sooner)")
     parser.add_argument("--norm-each-channel", action="store_true")
     args = parser.parse_args()
 

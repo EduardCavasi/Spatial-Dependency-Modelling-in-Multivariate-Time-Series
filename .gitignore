@@ -9,4 +9,7 @@ data/PEMS08
 __pycache__
 checkpoints
 steps/basicts.md
+.venv/
+
+run_overnight.ps1
 environment.yml
