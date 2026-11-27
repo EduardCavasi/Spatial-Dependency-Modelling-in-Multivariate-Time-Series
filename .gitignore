@@ -12,3 +12,4 @@ steps/basicts.md
 .venv/
 
 run_overnight.ps1
+environment.yml

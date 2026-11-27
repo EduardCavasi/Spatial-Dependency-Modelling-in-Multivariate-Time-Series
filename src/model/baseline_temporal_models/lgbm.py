@@ -8,6 +8,7 @@ from basicts.metrics import ALL_METRICS
 import joblib
 import json
 import os
+import random as rand
 
 @dataclass
 class LGBMConfig:
@@ -29,6 +30,9 @@ class LGBMConfig:
     lambda_l1: float = 0.0
     lambda_l2: float = 0.0
     min_gain_to_split: float = 0.0
+
+    save_results: bool = True
+    random: bool = False
 
 class LGBM:
     """One LightGBM per horizon, shared across sensors (each sensor window is an example).
@@ -77,7 +81,7 @@ class LGBM:
                 n_jobs=-1, force_col_wise=True, max_bin=c.max_bin, device_type="cpu",
                 reg_alpha=c.lambda_l1, reg_lambda=c.lambda_l2, min_split_gain=c.min_gain_to_split,
                 bagging_fraction=c.bagging_fraction, bagging_freq=c.bagging_freq, feature_fraction=c.feature_fraction,
-                random_state=42
+                random_state=42 if not self.config.random else rand.randint(1, 100)
             )   
             model.fit(
                 X[m], Y[m, horizon],
@@ -107,6 +111,9 @@ class LGBM:
         results = self.evaluate(*self.windows(path, "test"))
         for k, v in results.items():
             print(k, v)
+
+        if not self.config.save_results:
+            return results
 
         if folder_name is None:
             folder_name = "checkpoints/LGBM/" + f"input_{self.config.input_len}" + ("_tod" if self.config.use_tod else "") + ("_dow" if self.config.use_dow else "")
